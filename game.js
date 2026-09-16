@@ -259,14 +259,26 @@
   document.getElementById('btnUp').addEventListener('click', rotate);
   document.getElementById('btnLeft').addEventListener('click', () => move(-1));
   document.getElementById('btnRight').addEventListener('click', () => move(1));
-  document.getElementById('btnDown').addEventListener('click', softDrop);
   document.getElementById('btnRotate').addEventListener('click', rotate);
   document.getElementById('btnDrop').addEventListener('click', hardDrop);
 
-  // prevent double-tap zoom / touch scroll issues on control buttons
-  document.querySelectorAll('.ctrl-btn').forEach(btn => {
-    btn.addEventListener('touchstart', e => e.preventDefault(), { passive: false });
-  });
+  // held-down fast drop (button)
+  let downInterval = null;
+  function startFastDrop() {
+    if (downInterval) return;
+    softDrop();
+    downInterval = setInterval(softDrop, 50);
+  }
+  function stopFastDrop() {
+    clearInterval(downInterval);
+    downInterval = null;
+  }
+  const btnDown = document.getElementById('btnDown');
+  btnDown.addEventListener('pointerdown', (e) => { e.preventDefault(); startFastDrop(); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(evt => btnDown.addEventListener(evt, stopFastDrop));
+
+  // touch-action: manipulation (set in CSS) already kills double-tap zoom/delay on
+  // buttons, so no per-button preventDefault is needed here (it broke click firing).
 
   // block pinch-zoom, double-tap zoom, and overscroll gestures app-wide
   document.addEventListener('gesturestart', e => e.preventDefault());
@@ -274,6 +286,7 @@
   document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
   let lastTouchEnd = 0;
   document.addEventListener('touchend', e => {
+    if (e.target.closest('.ctrl-btn')) return; // never block taps on controls
     const now = Date.now();
     if (now - lastTouchEnd <= 300) e.preventDefault();
     lastTouchEnd = now;
@@ -284,13 +297,17 @@
     switch (e.key) {
       case 'ArrowLeft': move(-1); break;
       case 'ArrowRight': move(1); break;
-      case 'ArrowDown': softDrop(); break;
+      case 'ArrowDown': if (!e.repeat) startFastDrop(); break;
       case 'ArrowUp': rotate(); break;
       case ' ': hardDrop(); break;
       case 'p': case 'P': togglePause(); break;
       case 'Enter': if (!running) startGame(); break;
     }
   }, { passive: false });
+
+  window.addEventListener('keyup', (e) => {
+    if (e.key === 'ArrowDown') stopFastDrop();
+  });
 
   // initial overlay
   overlayText.textContent = 'BLOCK STACKER\n\nArrows: move/rotate\nSpace: hard drop\nP: pause';

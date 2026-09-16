@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Block Stacker</title>
 <meta name="theme-color" content="#2b2b2b">
 <link rel="manifest" href="manifest.json">
@@ -13,6 +13,12 @@
 <body>
   <div id="console">
     <div id="screen-bezel">
+      <div id="hud">
+        <div class="hud-box">SCORE<br><span id="score">0</span></div>
+        <div class="hud-box">STAGE<br><span id="level">1</span></div>
+        <div class="hud-box">LINES<br><span id="lines">0</span></div>
+        <div class="hud-box">NEXT<br><canvas id="next" width="64" height="64"></canvas></div>
+      </div>
       <div id="screen">
         <canvas id="board" width="240" height="480"></canvas>
         <div id="overlay">
@@ -20,25 +26,26 @@
           <button id="startBtn">Start</button>
         </div>
       </div>
-      <div id="hud">
-        <div class="hud-box">SCORE<br><span id="score">0</span></div>
-        <div class="hud-box">LINES<br><span id="lines">0</span></div>
-        <div class="hud-box">LEVEL<br><span id="level">1</span></div>
-        <div class="hud-box">NEXT<br><canvas id="next" width="64" height="64"></canvas></div>
-      </div>
     </div>
 
     <div id="controls">
-      <div id="dpad">
-        <button id="btnLeft" class="ctrl-btn" aria-label="Left">◀</button>
-        <button id="btnRight" class="ctrl-btn" aria-label="Right">▶</button>
-        <button id="btnDown" class="ctrl-btn" aria-label="Down">▼</button>
+      <div id="pad-row">
+        <div id="dpad">
+          <button id="btnUp" class="ctrl-btn dpad-btn" aria-label="Up">▲</button>
+          <button id="btnLeft" class="ctrl-btn dpad-btn" aria-label="Left">◀</button>
+          <div class="dpad-center"></div>
+          <button id="btnRight" class="ctrl-btn dpad-btn" aria-label="Right">▶</button>
+          <button id="btnDown" class="ctrl-btn dpad-btn" aria-label="Down">▼</button>
+        </div>
+        <div id="action-buttons">
+          <button id="btnRotate" class="ctrl-btn round">A</button>
+          <button id="btnDrop" class="ctrl-btn round">B</button>
+        </div>
       </div>
-      <div id="action-buttons">
-        <button id="btnRotate" class="ctrl-btn round">A</button>
-        <button id="btnDrop" class="ctrl-btn round">B</button>
+      <div id="meta-buttons">
+        <button id="btnSelect" class="ctrl-btn pill">SELECT</button>
+        <button id="btnPause" class="ctrl-btn pill">START</button>
       </div>
-      <button id="btnPause" class="ctrl-btn small">⏸</button>
     </div>
   </div>
 

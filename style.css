@@ -18,6 +18,7 @@ html, body {
   font-family: 'Courier New', monospace;
   overflow: hidden;
   touch-action: none;
+  overscroll-behavior: none;
 }
 
 #console {
@@ -92,6 +93,7 @@ html, body {
   display: flex;
   gap: 8px;
   justify-content: space-between;
+  margin-bottom: 10px;
 }
 
 .hud-box {
@@ -110,34 +112,18 @@ html, body {
 #next { image-rendering: pixelated; }
 
 #controls {
-  margin-top: 18px;
+  margin-top: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 24px;
   min-height: 0;
 }
-
-#dpad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  align-items: center;
-  justify-items: center;
-}
-
-#btnLeft { grid-column: 1; }
-#btnDown { grid-column: 2; }
-#btnRight { grid-column: 3; }
 
 .ctrl-btn {
   background: linear-gradient(160deg, #d0d3d8, #9296a0);
   border: none;
-  border-radius: 10px;
-  width: 100%;
-  aspect-ratio: 1;
-  max-width: 64px;
-  font-size: 20px;
   color: #2b2b2b;
   box-shadow: 0 3px 0 #6b6e75, inset 0 1px 1px rgba(255,255,255,.5);
 }
@@ -147,32 +133,71 @@ html, body {
   box-shadow: 0 1px 0 #6b6e75;
 }
 
-#action-buttons {
+#pad-row {
   display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+}
+
+/* Cross-shaped D-pad */
+#dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  grid-template-rows: repeat(3, 48px);
+  gap: 2px;
+}
+
+.dpad-btn {
+  font-size: 16px;
+  border-radius: 4px;
+}
+
+.dpad-center { background: transparent; }
+
+#btnUp { grid-column: 2; grid-row: 1; border-radius: 6px 6px 2px 2px; }
+#btnLeft { grid-column: 1; grid-row: 2; border-radius: 6px 2px 2px 6px; }
+.dpad-center { grid-column: 2; grid-row: 2; }
+#btnRight { grid-column: 3; grid-row: 2; border-radius: 2px 6px 6px 2px; }
+#btnDown { grid-column: 2; grid-row: 3; border-radius: 2px 2px 6px 6px; }
+
+#action-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 54px);
+  grid-template-rows: repeat(2, 54px);
+  gap: 10px;
+  transform: translateY(-10px);
 }
 
 .ctrl-btn.round {
   border-radius: 50%;
-  max-width: 58px;
   font-weight: bold;
+  font-size: 18px;
   background: linear-gradient(160deg, #ff8a8a, #d64545);
-  color: #fff;
   box-shadow: 0 3px 0 #a13030, inset 0 1px 1px rgba(255,255,255,.5);
+  color: #fff;
 }
 
-#btnDrop { background: linear-gradient(160deg, #8ac0ff, #4577d6); box-shadow: 0 3px 0 #30539a, inset 0 1px 1px rgba(255,255,255,.5); }
+#btnRotate { grid-column: 2; grid-row: 1; }
+#btnDrop {
+  grid-column: 1; grid-row: 2;
+  background: linear-gradient(160deg, #8ac0ff, #4577d6);
+  box-shadow: 0 3px 0 #30539a, inset 0 1px 1px rgba(255,255,255,.5);
+}
 
-.ctrl-btn.small {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 34px;
-  max-width: 34px;
-  border-radius: 50%;
-  font-size: 14px;
+#meta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+
+.ctrl-btn.pill {
+  width: 64px;
+  height: 22px;
+  border-radius: 12px;
+  font-size: 9px;
+  letter-spacing: .5px;
+  transform: rotate(-20deg);
 }
 
 #console { position: relative; }

@@ -254,6 +254,8 @@
   });
 
   document.getElementById('btnPause').addEventListener('click', togglePause);
+  document.getElementById('btnSelect').addEventListener('click', () => { if (!running || gameOverFlag) startGame(); });
+  document.getElementById('btnUp').addEventListener('click', rotate);
   document.getElementById('btnLeft').addEventListener('click', () => move(-1));
   document.getElementById('btnRight').addEventListener('click', () => move(1));
   document.getElementById('btnDown').addEventListener('click', softDrop);
@@ -264,6 +266,17 @@
   document.querySelectorAll('.ctrl-btn').forEach(btn => {
     btn.addEventListener('touchstart', e => e.preventDefault(), { passive: false });
   });
+
+  // block pinch-zoom, double-tap zoom, and overscroll gestures app-wide
+  document.addEventListener('gesturestart', e => e.preventDefault());
+  document.addEventListener('gesturechange', e => e.preventDefault());
+  document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, { passive: false });
 
   window.addEventListener('keydown', (e) => {
     switch (e.key) {

@@ -185,7 +185,7 @@
     nctx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
     nctx.fillStyle = '#101210';
     nctx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
-    const s = 14;
+    const s = 9;
     for (const {x, y} of next.cells) {
       nctx.fillStyle = COLORS[next.type];
       nctx.fillRect(x * s + 4, y * s + 4, s - 1, s - 1);
@@ -249,8 +249,9 @@
   }
 
   startBtn.addEventListener('click', () => {
-    if (paused && !gameOverFlag) { togglePause(); return; }
+    if (paused && !gameOverFlag) { togglePause(); startBtn.blur(); return; }
     startGame();
+    startBtn.blur();
   });
 
   document.getElementById('btnPause').addEventListener('click', togglePause);
@@ -279,16 +280,17 @@
   }, { passive: false });
 
   window.addEventListener('keydown', (e) => {
+    if (['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' '].includes(e.key)) e.preventDefault();
     switch (e.key) {
       case 'ArrowLeft': move(-1); break;
       case 'ArrowRight': move(1); break;
       case 'ArrowDown': softDrop(); break;
       case 'ArrowUp': rotate(); break;
-      case ' ': e.preventDefault(); hardDrop(); break;
+      case ' ': hardDrop(); break;
       case 'p': case 'P': togglePause(); break;
       case 'Enter': if (!running) startGame(); break;
     }
-  });
+  }, { passive: false });
 
   // initial overlay
   overlayText.textContent = 'BLOCK STACKER\n\nArrows: move/rotate\nSpace: hard drop\nP: pause';

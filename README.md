@@ -1,6 +1,6 @@
 # Block Stacker
 
-Version: 0.2 — 2026-09-16
+Version: 0.3 — 2026-09-16
 
 A Tetris-style HTML/JS PWA. Grey Game Boy-style shell, rainbow-colored blocks on a dark screen. Touch d-pad + A/B buttons on phone, arrow keys on desktop (Space = hard drop, P = pause).
 

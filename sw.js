@@ -1,4 +1,4 @@
-const CACHE = 'block-stacker-v02';
+const CACHE = 'block-stacker-v01';
 const ASSETS = [
   './',
   './index.html',

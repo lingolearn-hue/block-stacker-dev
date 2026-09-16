@@ -37,26 +37,31 @@ html, body {
 #screen-bezel {
   background: var(--screen-dark);
   border-radius: 10px;
-  padding: 12px;
+  padding: 10px;
   box-shadow: inset 0 0 0 3px #16181a, inset 0 4px 10px rgba(0,0,0,.6);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  width: 100%;
+  aspect-ratio: 0.92 / 1; /* roughly square, slightly taller than wide */
+  flex: 0 0 auto;
 }
 
 #screen {
   position: relative;
   background: #101210;
   border-radius: 4px;
+  flex: 1;
   display: flex;
+  align-items: center;
   justify-content: center;
+  overflow: hidden;
   box-shadow: inset 0 0 12px rgba(0,0,0,.8);
 }
 
 #board {
-  width: 100%;
-  max-width: 240px;
-  height: auto;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
   image-rendering: pixelated;
 }
 
@@ -91,33 +96,36 @@ html, body {
 
 #hud {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: space-between;
-  margin-bottom: 10px;
+  flex: 0 0 10%;
+  margin-bottom: 8px;
+  min-height: 0;
 }
 
 .hud-box {
   flex: 1;
   background: #101210;
   color: #d7f5d7;
-  font-size: 10px;
+  font-size: 8px;
   text-align: center;
   border-radius: 4px;
-  padding: 6px 4px;
-  line-height: 1.6;
+  padding: 3px 2px;
+  line-height: 1.3;
+  overflow: hidden;
 }
 
-.hud-box span { font-size: 14px; font-weight: bold; }
+.hud-box span { font-size: 11px; font-weight: bold; }
 
-#next { image-rendering: pixelated; }
+#next { image-rendering: pixelated; width: 32px; height: 32px; max-width: 100%; }
 
 #controls {
-  margin-top: 20px;
-  flex: 1;
+  margin-top: 16px;
+  flex: 1 1 33%;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 24px;
+  gap: 20px;
   min-height: 0;
 }
 

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Block Stacker</title>
+<meta name="theme-color" content="#2b2b2b">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="console">
+    <div id="screen-bezel">
+      <div id="screen">
+        <canvas id="board" width="240" height="480"></canvas>
+        <div id="overlay">
+          <div id="overlay-text"></div>
+          <button id="startBtn">Start</button>
+        </div>
+      </div>
+      <div id="hud">
+        <div class="hud-box">SCORE<br><span id="score">0</span></div>
+        <div class="hud-box">LINES<br><span id="lines">0</span></div>
+        <div class="hud-box">LEVEL<br><span id="level">1</span></div>
+        <div class="hud-box">NEXT<br><canvas id="next" width="64" height="64"></canvas></div>
+      </div>
+    </div>
+
+    <div id="controls">
+      <div id="dpad">
+        <button id="btnLeft" class="ctrl-btn" aria-label="Left">◀</button>
+        <button id="btnRight" class="ctrl-btn" aria-label="Right">▶</button>
+        <button id="btnDown" class="ctrl-btn" aria-label="Down">▼</button>
+      </div>
+      <div id="action-buttons">
+        <button id="btnRotate" class="ctrl-btn round">A</button>
+        <button id="btnDrop" class="ctrl-btn round">B</button>
+      </div>
+      <button id="btnPause" class="ctrl-btn small">⏸</button>
+    </div>
+  </div>
+
+<script src="game.js"></script>
+</body>
+</html>

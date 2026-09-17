@@ -27,13 +27,14 @@
 
   const SHAPES = {
     I: [[0,1],[1,1],[2,1],[3,1]],
-    O: [[1,0],[2,0],[1,1],[2,1]],
+    O: [[0,0],[1,0],[0,1],[1,1]],
     T: [[1,0],[0,1],[1,1],[2,1]],
     S: [[1,0],[2,0],[0,1],[1,1]],
     Z: [[0,0],[1,0],[1,1],[2,1]],
     J: [[0,0],[0,1],[1,1],[2,1]],
     L: [[2,0],[0,1],[1,1],[2,1]]
   };
+  const BOX_N = { I: 4, O: 2, T: 3, S: 3, Z: 3, J: 3, L: 3 };
   const TYPES = Object.keys(SHAPES);
 
   let board, current, next, score, lines, level, dropInterval, dropTimer, lastTime;
@@ -46,13 +47,14 @@
 
   function randomPiece() {
     const type = TYPES[Math.floor(Math.random() * TYPES.length)];
+    const n = BOX_N[type];
     const cells = SHAPES[type].map(([x, y]) => ({x, y}));
-    return { type, cells, x: 3, y: -1, rot: 0 };
+    return { type, cells, x: Math.floor((COLS - n) / 2), y: -1, rot: 0, n };
   }
 
-  function rotateCells(cells) {
-    // rotate around approximate center (1.5,1.5) for 4x4 box, then round
-    return cells.map(({x, y}) => ({ x: 3 - y, y: x }));
+  function rotateCells(cells, n) {
+    // rotate 90° within the piece's own NxN bounding box (not always 4x4)
+    return cells.map(({x, y}) => ({ x: n - 1 - y, y: x }));
   }
 
   function collides(cells, ox, oy, b) {
@@ -64,12 +66,10 @@
     return false;
   }
 
-  function place() {
-    for (const {x, y} of current.cells) {
-      const bx = x + current.x, by = y + current.y;
-      if (by >= 0) board[by][bx] = current.type;
-    }
-    clearLines();
+  let flashRows = [];
+  let locked = false;
+
+  function spawnNext() {
     current = next;
     next = randomPiece();
     drawNext();
@@ -78,23 +78,53 @@
     }
   }
 
-  function clearLines() {
-    let cleared = 0;
-    for (let y = ROWS - 1; y >= 0; y--) {
-      if (board[y].every(c => c)) {
-        board.splice(y, 1);
-        board.unshift(Array(COLS).fill(null));
-        cleared++;
-        y++;
-      }
+  function place() {
+    for (const {x, y} of current.cells) {
+      const bx = x + current.x, by = y + current.y;
+      if (by >= 0) board[by][bx] = current.type;
     }
-    if (cleared) {
-      const points = [0, 100, 300, 500, 800][cleared] * level;
-      score += points;
-      lines += cleared;
-      level = 1 + Math.floor(lines / 10);
-      dropInterval = Math.max(100, 800 - (level - 1) * 70);
-      updateHUD();
+    const fullRows = [];
+    for (let y = 0; y < ROWS; y++) {
+      if (board[y].every(c => c)) fullRows.push(y);
+    }
+    if (fullRows.length) {
+      flashRows = fullRows;
+      locked = true;
+      if (rafId) cancelAnimationFrame(rafId);
+      draw();
+      requestAnimationFrame(flashLoop);
+      setTimeout(() => finishLineClear(fullRows), 220);
+    } else {
+      spawnNext();
+    }
+  }
+
+  function flashLoop() {
+    if (!flashRows.length) return;
+    draw();
+    requestAnimationFrame(flashLoop);
+  }
+
+  function finishLineClear(rows) {
+    rows.sort((a, b) => a - b);
+    for (const y of rows) {
+      board.splice(y, 1);
+      board.unshift(Array(COLS).fill(null));
+    }
+    const cleared = rows.length;
+    const points = [0, 100, 300, 500, 800][cleared] * level;
+    score += points;
+    lines += cleared;
+    level = 1 + Math.floor(lines / 10);
+    dropInterval = Math.max(100, 800 - (level - 1) * 70);
+    updateHUD();
+    flashRows = [];
+    locked = false;
+    spawnNext();
+    draw();
+    if (running && !paused) {
+      lastTime = 0;
+      rafId = requestAnimationFrame(loop);
     }
   }
 
@@ -105,13 +135,13 @@
   }
 
   function move(dx) {
-    if (!running || paused) return;
+    if (!running || paused || locked) return;
     if (!collides(current.cells, current.x + dx, current.y, board)) current.x += dx;
     draw();
   }
 
   function softDrop() {
-    if (!running || paused) return;
+    if (!running || paused || locked) return;
     if (!collides(current.cells, current.x, current.y + 1, board)) {
       current.y += 1;
       score += 1;
@@ -123,7 +153,7 @@
   }
 
   function hardDrop() {
-    if (!running || paused) return;
+    if (!running || paused || locked) return;
     let dist = 0;
     while (!collides(current.cells, current.x, current.y + 1, board)) {
       current.y += 1;
@@ -136,8 +166,8 @@
   }
 
   function rotate() {
-    if (!running || paused) return;
-    const rotated = rotateCells(current.cells);
+    if (!running || paused || locked) return;
+    const rotated = rotateCells(current.cells, current.n);
     const kicks = [0, -1, 1, -2, 2];
     for (const k of kicks) {
       if (!collides(rotated, current.x + k, current.y, board)) {
@@ -179,21 +209,28 @@
     for (let y = 0; y <= ROWS; y++) {
       ctx.beginPath(); ctx.moveTo(0, y * CELL); ctx.lineTo(canvas.width, y * CELL); ctx.stroke();
     }
+    // line-clear flicker
+    if (flashRows.length && Math.floor(performance.now() / 70) % 2 === 0) {
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      for (const y of flashRows) {
+        ctx.fillRect(0, y * CELL, canvas.width, CELL - 1);
+      }
+    }
   }
 
   function drawNext() {
     nctx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
     nctx.fillStyle = '#101210';
     nctx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
-    const s = 9;
+    const s = 18;
     for (const {x, y} of next.cells) {
       nctx.fillStyle = COLORS[next.type];
-      nctx.fillRect(x * s + 4, y * s + 4, s - 1, s - 1);
+      nctx.fillRect(x * s + 8, y * s + 8, s - 1, s - 1);
     }
   }
 
   function loop(ts) {
-    if (!running || paused) return;
+    if (!running || paused || locked) return;
     if (!lastTime) lastTime = ts;
     const dt = ts - lastTime;
     if (dt > dropInterval) {
@@ -215,7 +252,7 @@
     score = 0; lines = 0; level = 1;
     dropInterval = 800;
     lastTime = 0;
-    running = true; paused = false; gameOverFlag = false;
+    running = true; paused = false; gameOverFlag = false; locked = false; flashRows = [];
     updateHUD();
     drawNext();
     draw();
@@ -262,7 +299,8 @@
   document.getElementById('btnRotate').addEventListener('click', rotate);
   document.getElementById('btnDrop').addEventListener('click', hardDrop);
 
-  // held-down fast drop (button)
+  // held-down fast drop (button) — bound to every event that can end a press,
+  // plus a window-level catch-all, so a release is never missed.
   let downInterval = null;
   function startFastDrop() {
     if (downInterval) return;
@@ -270,27 +308,53 @@
     downInterval = setInterval(softDrop, 50);
   }
   function stopFastDrop() {
+    if (!downInterval) return;
     clearInterval(downInterval);
     downInterval = null;
   }
   const btnDown = document.getElementById('btnDown');
-  btnDown.addEventListener('pointerdown', (e) => { e.preventDefault(); startFastDrop(); });
-  ['pointerup', 'pointerleave', 'pointercancel'].forEach(evt => btnDown.addEventListener(evt, stopFastDrop));
+  const startHandler = (e) => { e.preventDefault(); startFastDrop(); };
+  btnDown.addEventListener('pointerdown', startHandler);
+  btnDown.addEventListener('touchstart', startHandler, { passive: false });
+  ['pointerup', 'pointerleave', 'pointercancel', 'pointerout', 'touchend', 'touchcancel', 'mouseup', 'mouseleave']
+    .forEach(evt => btnDown.addEventListener(evt, stopFastDrop));
+  // catch-all: if the finger/mouse is released anywhere (dragged off the button), stop
+  window.addEventListener('pointerup', stopFastDrop);
+  window.addEventListener('touchend', stopFastDrop);
+  window.addEventListener('mouseup', stopFastDrop);
+  window.addEventListener('blur', stopFastDrop);
 
   // touch-action: manipulation (set in CSS) already kills double-tap zoom/delay on
   // buttons, so no per-button preventDefault is needed here (it broke click firing).
 
-  // block pinch-zoom, double-tap zoom, and overscroll gestures app-wide
+  // block pinch-zoom, double-tap zoom, and overscroll gestures app-wide,
+  // and forcibly revert the viewport if a zoom slips through anyway
+  function resetZoom() {
+    const vp = document.querySelector('meta[name=viewport]');
+    if (vp) {
+      const content = vp.getAttribute('content');
+      vp.setAttribute('content', content + ' ');
+      vp.setAttribute('content', content);
+    }
+    window.scrollTo(0, 0);
+  }
   document.addEventListener('gesturestart', e => e.preventDefault());
   document.addEventListener('gesturechange', e => e.preventDefault());
+  document.addEventListener('gestureend', resetZoom);
+  document.addEventListener('dblclick', e => e.preventDefault());
   document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
   let lastTouchEnd = 0;
   document.addEventListener('touchend', e => {
     if (e.target.closest('.ctrl-btn')) return; // never block taps on controls
     const now = Date.now();
-    if (now - lastTouchEnd <= 300) e.preventDefault();
+    if (now - lastTouchEnd <= 300) { e.preventDefault(); resetZoom(); }
     lastTouchEnd = now;
   }, { passive: false });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      if (window.visualViewport.scale > 1.01) resetZoom();
+    });
+  }
 
   window.addEventListener('keydown', (e) => {
     if (['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' '].includes(e.key)) e.preventDefault();
